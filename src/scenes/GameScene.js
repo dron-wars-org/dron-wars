@@ -10,6 +10,7 @@ export default class GameScene extends Phaser.Scene {
     }
 
     create() {
+
         this.cameras.main.setBackgroundColor('#0a0a2e');
 
         // Bullets array (simple, no pooling)
@@ -101,5 +102,6 @@ export default class GameScene extends Phaser.Scene {
         this.time.delayedCall(1000, () => {
             this.scene.start('GameOver');
         });
+
     }
 }
