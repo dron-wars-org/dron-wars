@@ -1,11 +1,9 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  base: './',
-  build: {
-    assetsDir: 'assets',
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: './test/setup.js',
   },
-  server: {
-    port: 3000
-  }
 });
