@@ -43,10 +43,10 @@ export default class Player extends Phaser.GameObjects.Container {
     }
 
     handleShooting(time) {
-        if ((this.cursors.space.isDown || this.wasd.space.isDown) && time > this.lastFired) {
+        if ((this.cursors.space.isDown || this.wasd.space.isDown) && time > this.lastFired + this.fireDelay) {
             const bullet = new Bullet(this.scene, this.x + 50, this.y + 10);
             this.bullets.push(bullet);
-            this.lastFired = time + this.fireDelay;
+            this.lastFired = time;
         }
     }
 
