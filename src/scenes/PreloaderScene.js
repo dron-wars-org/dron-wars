@@ -6,8 +6,7 @@ export default class PreloaderScene extends Phaser.Scene {
     }
 
     preload() {
-        // Load game assets here
-        // this.load.image('logo', 'assets/logo.png');
+        // No assets needed - using Graphics API
     }
 
     create() {
