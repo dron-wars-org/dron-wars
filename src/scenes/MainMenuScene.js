@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import TokenManager from '../utils/TokenManager.js';
 
 export default class MainMenuScene extends Phaser.Scene {
     constructor() {
@@ -8,11 +9,32 @@ export default class MainMenuScene extends Phaser.Scene {
     create() {
         const { width, height } = this.cameras.main;
 
-        this.add.text(width / 2, 200, 'DRON WARS', {
+        this.add.text(width / 2, 150, 'DRON WARS', {
             fontSize: '48px',
             fill: '#00ff00',
             fontStyle: 'bold'
         }).setOrigin(0.5);
+
+        // Mostrar bienvenida si está autenticado
+        if (TokenManager.isAuthenticated()) {
+            this.add.text(width / 2, 220, `Bienvenido, ${TokenManager.getUsername()}`, {
+                fontSize: '24px',
+                fill: '#ffffff'
+            }).setOrigin(0.5);
+
+            const logoutText = this.add.text(width / 2, 260, 'Cerrar Sesión', {
+                fontSize: '18px',
+                fill: '#ff4444'
+            }).setOrigin(0.5);
+
+            logoutText.setInteractive({ useHandCursor: true });
+            logoutText.on('pointerdown', () => {
+                TokenManager.clear();
+                this.scene.restart();
+            });
+            logoutText.on('pointerover', () => logoutText.setStyle({ fill: '#ff0000' }));
+            logoutText.on('pointerout', () => logoutText.setStyle({ fill: '#ff4444' }));
+        }
 
         // Opción: Jugar
         const playText = this.add.text(width / 2, 320, 'JUGAR (SPACE)', {
