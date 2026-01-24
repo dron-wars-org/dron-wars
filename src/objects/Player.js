@@ -6,12 +6,12 @@ export default class Player extends Phaser.GameObjects.Container {
         super(scene, x, y);
 
         // Draw drone shape
-        const graphics = scene.add.graphics();
-        graphics.fillStyle(0x00ff00, 1);
-        graphics.fillRect(0, 0, 40, 20);
-        graphics.fillStyle(0x00aa00, 1);
-        graphics.fillTriangle(40, 0, 50, 10, 40, 20);
-        this.add(graphics);
+        this.graphics = scene.add.graphics();
+        this.graphics.fillStyle(0x00ff00, 1);
+        this.graphics.fillRect(0, 0, 40, 20);
+        this.graphics.fillStyle(0x00aa00, 1);
+        this.graphics.fillTriangle(40, 0, 50, 10, 40, 20);
+        this.add(this.graphics);
 
         // Add to scene and physics
         scene.add.existing(this);
