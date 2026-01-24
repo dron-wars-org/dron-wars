@@ -6,7 +6,6 @@ export default class PreloaderScene extends Phaser.Scene {
     }
 
     preload() {
-
         // No assets needed - using Graphics API
     }
 

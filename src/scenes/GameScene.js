@@ -10,8 +10,8 @@ export default class GameScene extends Phaser.Scene {
     }
 
     create() {
-
         this.cameras.main.setBackgroundColor('#0a0a2e');
+        this.isGameOver = false; // Flag to prevent multiple game over calls
 
         // Bullets array (simple, no pooling)
         this.bullets = [];
@@ -34,6 +34,8 @@ export default class GameScene extends Phaser.Scene {
     }
 
     update(time, delta) {
+        if (this.isGameOver) return; // Stop updating if game is over
+
         // Update player
         this.player.update(time);
 
@@ -69,12 +71,15 @@ export default class GameScene extends Phaser.Scene {
             // Check player collision
             const playerDistance = Phaser.Math.Distance.Between(this.player.x, this.player.y, enemy.x, enemy.y);
             if (playerDistance < 30) {
+                console.log(`💥 [COLLISION DETECTED] Distance: ${playerDistance.toFixed(2)} - Triggering hitPlayer`);
                 this.hitPlayer(this.player, enemy);
             }
         });
     }
 
     spawnEnemy() {
+        if (this.isGameOver) return;
+
         const x = 850;
         const y = Phaser.Math.Between(50, 550);
         const type = Phaser.Math.Between(0, 1);
@@ -97,11 +102,39 @@ export default class GameScene extends Phaser.Scene {
     }
 
     hitPlayer(player, enemy) {
-        this.physics.pause();
-        player.setTint(0xff0000);
-        this.time.delayedCall(1000, () => {
-            this.scene.start('GameOver');
-        });
+        console.log('🔴 [COLLISION] hitPlayer called');
 
+        if (this.isGameOver) {
+            console.log('⚠️ [COLLISION] Already game over, ignoring');
+            return;
+        }
+
+        console.log('🎮 [GAME OVER] Setting isGameOver flag to true');
+        this.isGameOver = true;
+
+        // Visual feedback - redraw player in red
+        console.log('🎨 [VISUAL] Changing player color to red');
+        player.graphics.clear();
+        player.graphics.fillStyle(0xff0000, 1);
+        player.graphics.fillRect(0, 0, 40, 20);
+        player.graphics.fillStyle(0xaa0000, 1);
+        player.graphics.fillTriangle(40, 0, 50, 10, 40, 20);
+
+        // Use scene sleep/wake instead of physics.pause to keep timers working
+        console.log('⏸️ [SCENE] Pausing scene');
+        this.scene.pause();
+
+        // Use a setTimeout instead of Phaser timer (not affected by scene pause)
+        console.log('⏱️ [TIMER] Setting setTimeout for 1000ms');
+        setTimeout(() => {
+            console.log('✅ [TIMER] setTimeout executed!');
+            console.log('🛑 [SCENE] Stopping GameScene');
+            this.scene.stop();
+            console.log('▶️ [SCENE] Starting GameOver scene');
+            this.scene.start('GameOver');
+            console.log('🏁 [DONE] Scene transition complete');
+        }, 1000);
+
+        console.log('📝 [HITPLAYER] hitPlayer function completed');
     }
 }
