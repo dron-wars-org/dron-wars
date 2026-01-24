@@ -17,7 +17,15 @@ class MockScene {
         };
         this.physics = {
             add: {
-                existing: vi.fn()
+                existing: vi.fn((gameObject) => {
+                    gameObject.body = {
+                        setCircle: vi.fn(),
+                        stop: vi.fn(),
+                        reset: vi.fn(),
+                        velocity: { x: 0, y: 0 }
+                    };
+                    return gameObject;
+                })
             }
         };
         this.sys = {
@@ -33,19 +41,7 @@ describe('Enemy', () => {
 
     beforeEach(() => {
         scene = new MockScene();
-        // Mock Container constructor since it calls super() which needs real Phaser logic or full mock
-        // For unit testing logic, we can partially mock the Enemy instance or ensure Phaser is happy.
-        // Since we are in jsdom with Phaser loaded, we can try instantiating real objects if mocks are sufficient.
-
         enemy = new Enemy(scene, 100, 100);
-
-        // Mock body manually since physics.add.existing is mocked
-        enemy.body = {
-            setCircle: vi.fn(),
-            stop: vi.fn(),
-            reset: vi.fn(),
-            velocity: { x: 0, y: 0 }
-        };
     });
 
     it('should initialize with correct HP', () => {
