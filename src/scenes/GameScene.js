@@ -3,6 +3,7 @@ import Player from '../objects/Player.js';
 import Bullet from '../objects/Bullet.js';
 import EnemyFloater from '../objects/enemies/EnemyFloater.js';
 import EnemyChaser from '../objects/enemies/EnemyChaser.js';
+import InputManager from '../managers/InputManager.js';
 
 export default class GameScene extends Phaser.Scene {
     constructor() {
@@ -11,20 +12,41 @@ export default class GameScene extends Phaser.Scene {
 
     create() {
         this.cameras.main.setBackgroundColor('#0a0a2e');
-        this.isGameOver = false; // Flag to prevent multiple game over calls
+        this.isGameOver = false;
 
-        // Bullets array (simple, no pooling)
-        this.bullets = [];
+        // 0. Input Management (New Unified System)
+        this.inputManager = new InputManager(this);
 
-        // Enemies Group
-        this.enemies = this.physics.add.group({
+        // 1. Bullet Pooling (LOB Pattern)
+        this.bullets = this.physics.add.group({
+            classType: Bullet,
+            maxSize: 50,
             runChildUpdate: true
         });
 
-        // Player
-        this.player = new Player(this, 100, 300, this.bullets);
+        // 2. Enemy Pooling (Patterns for different types)
+        this.enemyFloaters = this.physics.add.group({
+            classType: EnemyFloater,
+            maxSize: 20,
+            runChildUpdate: true
+        });
 
-        // Spawning Timer
+        this.enemyChasers = this.physics.add.group({
+            classType: EnemyChaser,
+            maxSize: 10,
+            runChildUpdate: true
+        });
+
+        this.enemies = this.physics.add.group([this.enemyFloaters, this.enemyChasers]);
+
+        // 3. Player initialization
+        this.player = new Player(this, 100, 300);
+
+        // 4. Collision Management (Optimized O(n))
+        this.physics.add.overlap(this.bullets, this.enemies, this.hitEnemy, null, this);
+        this.physics.add.overlap(this.player, this.enemies, this.hitPlayer, null, this);
+
+        // 5. Spawning Timer
         this.time.addEvent({
             delay: 2000,
             callback: this.spawnEnemy,
@@ -34,45 +56,26 @@ export default class GameScene extends Phaser.Scene {
     }
 
     update(time, delta) {
-        if (this.isGameOver) return; // Stop updating if game is over
+        if (this.isGameOver) return;
 
-        // Update player
+        // Update Input State
+        this.inputManager.update();
+
         this.player.update(time);
 
-        // Update and cleanup bullets
-        for (let i = this.bullets.length - 1; i >= 0; i--) {
-            const bullet = this.bullets[i];
-            if (bullet.x > 850) {
-                bullet.destroy();
-                this.bullets.splice(i, 1);
+        // Cleanup bullets that are off-screen (Object Pooling reuse)
+        this.bullets.getChildren().forEach(bullet => {
+            if (bullet.active && bullet.x > 850) {
+                bullet.setActive(false);
+                bullet.setVisible(false);
             }
-        }
+        });
 
-        // Update enemies and check collisions
+        // Cleanup enemies that are off-screen
         this.enemies.getChildren().forEach(enemy => {
-            if (!enemy.active) return;
-
-            if (enemy.update) {
-                enemy.update(time, delta, this.player);
-            }
-
-            // Check bullet collisions
-            for (let i = this.bullets.length - 1; i >= 0; i--) {
-                const bullet = this.bullets[i];
-                const distance = Phaser.Math.Distance.Between(bullet.x, bullet.y, enemy.x, enemy.y);
-                if (distance < 20) {
-                    enemy.takeDamage();
-                    bullet.destroy();
-                    this.bullets.splice(i, 1);
-                    break;
-                }
-            }
-
-            // Check player collision
-            const playerDistance = Phaser.Math.Distance.Between(this.player.x, this.player.y, enemy.x, enemy.y);
-            if (playerDistance < 30) {
-                console.log(`💥 [COLLISION DETECTED] Distance: ${playerDistance.toFixed(2)} - Triggering hitPlayer`);
-                this.hitPlayer(this.player, enemy);
+            if (enemy.active && enemy.x < -50) {
+                enemy.setActive(false);
+                enemy.setVisible(false);
             }
         });
     }
@@ -83,21 +86,26 @@ export default class GameScene extends Phaser.Scene {
         const x = 850;
         const y = Phaser.Math.Between(50, 550);
         const type = Phaser.Math.Between(0, 1);
-        let enemy;
 
+        let enemy;
         if (type === 0) {
-            enemy = new EnemyFloater(this, x, y);
+            enemy = this.enemyFloaters.get(x, y);
         } else {
-            enemy = new EnemyChaser(this, x, y);
+            enemy = this.enemyChasers.get(x, y);
         }
 
-        this.enemies.add(enemy);
-        enemy.spawn(x, y);
+        if (enemy) {
+            enemy.spawn(x, y);
+        }
     }
 
     hitEnemy(bullet, enemy) {
+        if (!bullet.active || !enemy.active) return;
+
         bullet.setActive(false);
         bullet.setVisible(false);
+        bullet.body.stop();
+
         enemy.takeDamage();
     }
 
