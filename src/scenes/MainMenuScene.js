@@ -8,6 +8,7 @@ export default class MainMenuScene extends Phaser.Scene {
 
     create() {
         const { width, height } = this.cameras.main;
+        this.selectedOption = 0; // 0: Jugar, 1: Registrarse, 2: Login
 
         this.add.text(width / 2, 150, 'DRON WARS', {
             fontSize: '48px',
@@ -15,7 +16,7 @@ export default class MainMenuScene extends Phaser.Scene {
             fontStyle: 'bold'
         }).setOrigin(0.5);
 
-        // Mostrar bienvenida si está autenticado
+        // Bienvenido
         if (TokenManager.isAuthenticated()) {
             this.add.text(width / 2, 220, `Bienvenido, ${TokenManager.getUsername()}`, {
                 fontSize: '24px',
@@ -36,41 +37,69 @@ export default class MainMenuScene extends Phaser.Scene {
             logoutText.on('pointerout', () => logoutText.setStyle({ fill: '#ff4444' }));
         }
 
-        // Opción: Jugar
-        const playText = this.add.text(width / 2, 320, 'JUGAR (SPACE)', {
-            fontSize: '24px',
-            fill: '#fff'
-        }).setOrigin(0.5);
+        // Definición de opciones
+        this.options = [
+            { text: 'JUGAR (SPACE)', y: 320, action: () => this.scene.start('Game'), color: '#ffffff' },
+            { text: 'REGISTRARSE', y: 380, action: () => this.scene.start('Register'), color: '#00aaff' },
+            { text: 'INICIAR SESIÓN', y: 440, action: () => this.scene.start('Login'), color: '#00aaff' }
+        ];
 
-        // Opción: Registrarse
-        const registerText = this.add.text(width / 2, 380, 'REGISTRARSE', {
-            fontSize: '24px',
-            fill: '#00aaff'
-        }).setOrigin(0.5);
+        this.optionTexts = [];
 
-        registerText.setInteractive({ useHandCursor: true });
-        registerText.on('pointerdown', () => {
-            this.scene.start('Register');
+        this.options.forEach((opt, index) => {
+            const txt = this.add.text(width / 2, opt.y, opt.text, {
+                fontSize: '24px',
+                fill: opt.color
+            }).setOrigin(0.5);
+
+            txt.setInteractive({ useHandCursor: true });
+            txt.on('pointerdown', opt.action);
+            txt.on('pointerover', () => {
+                this.selectedOption = index;
+                this.updateSelection();
+            });
+
+            this.optionTexts.push(txt);
         });
-        registerText.on('pointerover', () => registerText.setStyle({ fill: '#00ffff' }));
-        registerText.on('pointerout', () => registerText.setStyle({ fill: '#00aaff' }));
 
-        // Opción: Login
-        const loginText = this.add.text(width / 2, 440, 'INICIAR SESIÓN', {
+        // Cursor de selección
+        this.cursor = this.add.text(0, 0, '>', {
             fontSize: '24px',
-            fill: '#00aaff'
+            fill: '#00ff00',
+            fontStyle: 'bold'
         }).setOrigin(0.5);
 
-        loginText.setInteractive({ useHandCursor: true });
-        loginText.on('pointerdown', () => {
-            this.scene.start('Login');
-        });
-        loginText.on('pointerover', () => loginText.setStyle({ fill: '#00ffff' }));
-        loginText.on('pointerout', () => loginText.setStyle({ fill: '#00aaff' }));
+        this.updateSelection();
 
-        // Atajo de teclado para jugar
-        this.input.keyboard.once('keydown-SPACE', () => {
-            this.scene.start('Game');
+        // Controles de teclado
+        this.input.keyboard.on('keydown-UP', () => {
+            this.selectedOption = (this.selectedOption - 1 + this.options.length) % this.options.length;
+            this.updateSelection();
+        });
+
+        this.input.keyboard.on('keydown-DOWN', () => {
+            this.selectedOption = (this.selectedOption + 1) % this.options.length;
+            this.updateSelection();
+        });
+
+        this.input.keyboard.on('keydown-SPACE', () => {
+            this.options[this.selectedOption].action();
+        });
+
+        this.input.keyboard.on('keydown-ENTER', () => {
+            this.options[this.selectedOption].action();
+        });
+    }
+
+    updateSelection() {
+        this.optionTexts.forEach((txt, index) => {
+            if (index === this.selectedOption) {
+                txt.setStyle({ fill: '#00ff00' });
+                this.cursor.setVisible(true);
+                this.cursor.setPosition(txt.x - (txt.width / 2) - 40, txt.y);
+            } else {
+                txt.setStyle({ fill: this.options[index].color });
+            }
         });
     }
 }
