@@ -11,6 +11,7 @@ export default class GameScene extends Phaser.Scene {
     }
 
     create() {
+        console.log('🎮 [SCENE] GameScene create started');
         this.cameras.main.setBackgroundColor('#0a0a2e');
         this.isGameOver = false;
 
@@ -37,14 +38,14 @@ export default class GameScene extends Phaser.Scene {
             runChildUpdate: true
         });
 
-        this.enemies = this.physics.add.group([this.enemyFloaters, this.enemyChasers]);
-
         // 3. Player initialization
         this.player = new Player(this, 100, 300);
 
-        // 4. Collision Management (Optimized O(n))
-        this.physics.add.overlap(this.bullets, this.enemies, this.hitEnemy, null, this);
-        this.physics.add.overlap(this.player, this.enemies, this.hitPlayer, null, this);
+        // 4. Collision Management
+        // Pass array of groups for collision
+        const enemyGroups = [this.enemyFloaters, this.enemyChasers];
+        this.physics.add.overlap(this.bullets, enemyGroups, this.hitEnemy, null, this);
+        this.physics.add.overlap(this.player, enemyGroups, this.hitPlayer, null, this);
 
         // 5. Spawning Timer
         this.time.addEvent({
@@ -53,6 +54,8 @@ export default class GameScene extends Phaser.Scene {
             callbackScope: this,
             loop: true
         });
+
+        console.log('✅ [SCENE] GameScene create finished');
     }
 
     update(time, delta) {
@@ -63,7 +66,7 @@ export default class GameScene extends Phaser.Scene {
 
         this.player.update(time);
 
-        // Cleanup bullets that are off-screen (Object Pooling reuse)
+        // Cleanup bullets that are off-screen
         this.bullets.getChildren().forEach(bullet => {
             if (bullet.active && bullet.x > 850) {
                 bullet.setActive(false);
@@ -71,11 +74,20 @@ export default class GameScene extends Phaser.Scene {
             }
         });
 
-        // Cleanup enemies that are off-screen
-        this.enemies.getChildren().forEach(enemy => {
-            if (enemy.active && enemy.x < -50) {
-                enemy.setActive(false);
-                enemy.setVisible(false);
+        // Cleanup enemies
+        [this.enemyFloaters, this.enemyChasers].forEach(group => {
+            group.getChildren().forEach(enemy => {
+                if (enemy.active && enemy.x < -50) {
+                    enemy.setActive(false);
+                    enemy.setVisible(false);
+                }
+            });
+        });
+
+        // Update chasers with player position
+        this.enemyChasers.getChildren().forEach(enemy => {
+            if (enemy.active && enemy.update) {
+                enemy.update(time, delta, this.player);
             }
         });
     }
