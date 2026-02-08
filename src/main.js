@@ -5,6 +5,7 @@ import PreloaderScene from './scenes/PreloaderScene.js';
 import MainMenuScene from './scenes/MainMenuScene.js';
 import RegisterScene from './scenes/RegisterScene.js';
 import LoginScene from './scenes/LoginScene.js';
+import ProfileScene from './scenes/ProfileScene.js';
 import GameScene from './scenes/GameScene.js';
 import GameOverScene from './scenes/GameOverScene.js';
 
@@ -16,6 +17,7 @@ class Game extends Phaser.Game {
         this.scene.add('MainMenu', MainMenuScene);
         this.scene.add('Register', RegisterScene);
         this.scene.add('Login', LoginScene);
+        this.scene.add('Profile', ProfileScene);
         this.scene.add('Game', GameScene);
         this.scene.add('GameOver', GameOverScene);
 

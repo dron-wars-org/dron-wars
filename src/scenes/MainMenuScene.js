@@ -38,11 +38,19 @@ export default class MainMenuScene extends Phaser.Scene {
         }
 
         // Definición de opciones
-        this.options = [
-            { text: 'JUGAR (SPACE)', y: 320, action: () => this.scene.start('Game'), color: '#ffffff' },
-            { text: 'REGISTRARSE', y: 380, action: () => this.scene.start('Register'), color: '#00aaff' },
-            { text: 'INICIAR SESIÓN', y: 440, action: () => this.scene.start('Login'), color: '#00aaff' }
-        ];
+        if (TokenManager.isAuthenticated()) {
+            this.options = [
+                { text: 'JUGAR (SPACE)', y: 320, action: () => this.scene.start('Game'), color: '#ffffff' },
+                { text: 'PERFIL', y: 380, action: () => this.scene.start('Profile'), color: '#00aaff' }
+            ];
+        } else {
+            this.options = [
+                { text: 'JUGAR (SPACE)', y: 320, action: () => this.scene.start('Game'), color: '#ffffff' },
+                { text: 'REGISTRARSE', y: 380, action: () => this.scene.start('Register'), color: '#00aaff' },
+                { text: 'INICIAR SESIÓN', y: 440, action: () => this.scene.start('Login'), color: '#00aaff' }
+            ];
+        }
+
 
         this.optionTexts = [];
 
