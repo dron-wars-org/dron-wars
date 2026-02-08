@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import API_CONFIG from '../config/api.js';
+import ApiClient from '../utils/ApiClient.js';
 
 export default class RegisterScene extends Phaser.Scene {
     constructor() {
@@ -264,35 +265,21 @@ export default class RegisterScene extends Phaser.Scene {
         this.registerBtn.textContent = 'REGISTRANDO...';
 
         try {
-            const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AUTH.REGISTER}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    email: this.emailInput.value.trim(),
-                    username: this.usernameInput.value.trim(),
-                    password: this.passwordInput.value
-                })
+            await ApiClient.post(API_CONFIG.ENDPOINTS.AUTH.REGISTER, {
+                email: this.emailInput.value.trim(),
+                username: this.usernameInput.value.trim(),
+                password: this.passwordInput.value
             });
 
-            if (response.ok) {
-                const data = await response.json();
-                this.showMessage('¡Registro exitoso! Redirigiendo...', 'success');
+            this.showMessage('¡Registro exitoso! Redirigiendo...', 'success');
 
-                setTimeout(() => {
-                    this.hideForm();
-                    this.scene.start('Login');
-                }, 2000);
-            } else {
-                const error = await response.json();
-                this.showMessage(error.error || 'Error en el registro', 'error');
-                this.registerBtn.disabled = false;
-                this.registerBtn.textContent = 'REGISTRARSE';
-            }
+            setTimeout(() => {
+                this.hideForm();
+                this.scene.start('Login');
+            }, 2000);
         } catch (error) {
             console.error('Error:', error);
-            this.showMessage('Error de conexión con el servidor', 'error');
+            this.showMessage(error.message || 'Error en el registro', 'error');
             this.registerBtn.disabled = false;
             this.registerBtn.textContent = 'REGISTRARSE';
         }

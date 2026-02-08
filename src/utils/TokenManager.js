@@ -38,6 +38,13 @@ const TokenManager = {
     },
 
     /**
+     * Actualiza solo el access token (usado en refresh).
+     */
+    updateAccessToken(accessToken) {
+        localStorage.setItem(this.ACCESS_TOKEN_KEY, accessToken);
+    },
+
+    /**
      * Verifica si el usuario está autenticado (tiene un access token).
      */
     isAuthenticated() {

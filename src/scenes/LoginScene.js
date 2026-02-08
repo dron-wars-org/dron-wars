@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import API_CONFIG from '../config/api.js';
 import TokenManager from '../utils/TokenManager.js';
+import ApiClient from '../utils/ApiClient.js';
 
 export default class LoginScene extends Phaser.Scene {
     constructor() {
@@ -135,33 +136,22 @@ export default class LoginScene extends Phaser.Scene {
         this.loginBtn.textContent = 'INICIANDO...';
 
         try {
-            const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AUTH.LOGIN}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ email, password })
+            const data = await ApiClient.post(API_CONFIG.ENDPOINTS.AUTH.LOGIN, {
+                email,
+                password
             });
 
-            if (response.ok) {
-                const data = await response.json();
-                TokenManager.setTokens(data.accessToken, data.refreshToken, data.username);
+            TokenManager.setTokens(data.accessToken, data.refreshToken, data.username);
 
-                this.showMessage(`¡Bienvenido, ${data.username}!`, 'success');
+            this.showMessage(`¡Bienvenido, ${data.username}!`, 'success');
 
-                setTimeout(() => {
-                    this.hideForm();
-                    this.scene.start('MainMenu');
-                }, 1500);
-            } else {
-                const error = await response.json();
-                this.showMessage(error.error || 'Credenciales inválidas', 'error');
-                this.loginBtn.disabled = false;
-                this.loginBtn.textContent = 'INICIAR SESIÓN';
-            }
+            setTimeout(() => {
+                this.hideForm();
+                this.scene.start('MainMenu');
+            }, 1500);
         } catch (error) {
             console.error('Error:', error);
-            this.showMessage('Error de conexión con el servidor', 'error');
+            this.showMessage(error.message || 'Credenciales inválidas', 'error');
             this.loginBtn.disabled = false;
             this.loginBtn.textContent = 'INICIAR SESIÓN';
         }
