@@ -5,6 +5,7 @@ const API_CONFIG = {
         AUTH: {
             REGISTER: '/api/auth/register',
             LOGIN: '/api/auth/login',
+            REFRESH: '/api/auth/refresh',
             LOGOUT: '/api/auth/logout'
         }
     }
