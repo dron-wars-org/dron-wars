@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import API_CONFIG from '../config/api.js';
 import ApiClient from '../utils/ApiClient.js';
+import TokenManager from '../utils/TokenManager.js';
 
 export default class RegisterScene extends Phaser.Scene {
     constructor() {
@@ -132,6 +133,11 @@ export default class RegisterScene extends Phaser.Scene {
                     text-align: center;
                     display: none;
                 "></div>
+
+                <div style="margin-top: 20px; text-align: center;">
+                    <hr style="border: 0; border-top: 1px solid #333; margin-bottom: 20px;">
+                    <div id="google-login-btn" style="display: flex; justify-content: center;"></div>
+                </div>
             </div>
         `;
 
@@ -163,6 +169,48 @@ export default class RegisterScene extends Phaser.Scene {
                 if (e.key === 'Enter') this.handleRegister();
             });
         });
+
+        // Inicializar Google Sign-In
+        this.initGoogleSignIn();
+    }
+
+    initGoogleSignIn() {
+        if (typeof google === 'undefined') {
+            setTimeout(() => this.initGoogleSignIn(), 1000);
+            return;
+        }
+
+        google.accounts.id.initialize({
+            client_id: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
+            callback: (response) => this.handleGoogleLogin(response)
+        });
+
+        google.accounts.id.renderButton(
+            document.getElementById('google-login-btn'),
+            { theme: 'outline', size: 'large', text: 'continue_with' }
+        );
+    }
+
+    async handleGoogleLogin(googleResponse) {
+        this.showMessage('Verificando cuenta con Google...', 'success');
+
+        try {
+            const data = await ApiClient.post(API_CONFIG.ENDPOINTS.AUTH.GOOGLE, {
+                idToken: googleResponse.credential
+            });
+
+            TokenManager.setTokens(data.accessToken, data.refreshToken, data.username);
+
+            this.showMessage(`¡Bienvenido, ${data.username}!`, 'success');
+
+            setTimeout(() => {
+                this.hideForm();
+                this.scene.start('MainMenu');
+            }, 1500);
+        } catch (error) {
+            console.error('Error en Google Login:', error);
+            this.showMessage(error.message || 'Error al iniciar sesión con Google', 'error');
+        }
     }
 
     validateEmail() {

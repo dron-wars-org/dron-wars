@@ -144,6 +144,12 @@ npm run dev
 ```
 → http://localhost:5173 (Vite default)
 
+### ⚠️ Nota Importante para el Entorno Local
+He dejado placeholders para el Google Client ID. Para que la integración social funcione realmente, deberás:
+1. Obtener un **Client ID** desde la [Consola de Google Cloud](https://console.cloud.google.com/).
+2. Configurarlo en el backend: `application-local.properties` -> `google.client-id`.
+3. Configurarlo en el frontend: `LoginScene.js` y `RegisterScene.js` -> método `initGoogleSignIn`.
+
 ### 2. Infrastructure + Backend
 ```bash
 # Start infra (Postgres, Redis, Kafka)

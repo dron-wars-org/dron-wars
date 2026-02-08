@@ -7,6 +7,7 @@ const API_CONFIG = {
             LOGIN: '/api/auth/login',
             REFRESH: '/api/auth/refresh',
             PROFILE: '/api/auth/profile',
+            GOOGLE: '/api/auth/google',
             LOGOUT: '/api/auth/logout'
         }
     }
